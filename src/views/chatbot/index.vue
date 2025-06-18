@@ -36,7 +36,7 @@
             src="https://cdn-icons-png.flaticon.com/512/921/921347.png"
             alt="Ria Avatar"
           />
-          <div :class="['message', msg.sender]" v-html="msg.text"></div>
+        <div :class="['message', msg.sender]" v-html="msg.content || msg.text"></div>
         </div>
 
         <div v-if="typingText" class="message-wrapper bot">
@@ -104,43 +104,32 @@ onMounted(async () => {
   }];
 });
 
-const selectConversation = async (id) => {
-  activeConversationId.value = id;
-  const { data } = await getMessagesApi(id);
-  messages.value = data.map((msg) => ({
-    text: msg.sender === 'ai' ? parseAiMessage(msg.content) : msg.content,
-    sender: msg.sender === 'ai' ? 'bot' : 'user',
-  }));
-};
-
 const sendMessage = async () => {
   const text = userInput.value.trim();
   if (!text) return;
 
-  // Thêm message user vào danh sách ngay
   messages.value.push({ text, sender: 'user' });
   userInput.value = '';
   isLoading.value = true;
 
   try {
-    // Gửi API nhận phản hồi AI
     const { data: aiResponse } = await sendMesssageApi({
       userId,
       message: text,
       conversationId: activeConversationId.value || '',
     });
 
-    // Nếu chưa có conversationId (lần đầu), lấy lại conversations mới tạo và set active
+    // Không chờ getConversationsApi nếu chưa có conversationId
     if (!activeConversationId.value) {
-      const { data: convs } = await getConversationsApi(userId);
-      conversations.value = convs;
-      activeConversationId.value = convs[0]?.id || '';
+      getConversationsApi(userId).then(({ data }) => {
+        conversations.value = data;
+        activeConversationId.value = data[0]?.id || '';
+      });
     }
 
-    // Kiểm tra dữ liệu phản hồi AI
     const fullText = parseAiMessage(typeof aiResponse === 'string' ? aiResponse : aiResponse.reply || '');
 
-    // Hiệu ứng gõ chữ
+    // Gõ chữ nhanh hơn
     typingText.value = '';
     let i = 0;
     const interval = setInterval(() => {
@@ -148,17 +137,24 @@ const sendMessage = async () => {
         typingText.value += fullText[i++];
       } else {
         clearInterval(interval);
-        // Khi gõ xong, push message bot vào messages, xóa typingText
         messages.value.push({ text: typingText.value, sender: 'bot' });
         typingText.value = '';
       }
-    }, 20);
+    }, 10); 
   } catch (error) {
     console.error(error);
   } finally {
     isLoading.value = false;
   }
 };
+
+const selectConversation = async (id) => {
+  activeConversationId.value = id;
+  const { data } = await getMessagesApi(id);
+  console.log('Messages for conversation:', id, data);
+  messages.value = data || [];
+};
+
 
 
 const formatDate = (date) => new Date(date).toLocaleString();

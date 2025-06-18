@@ -30,4 +30,5 @@ export interface User {
   activityLevel?: string;
   allergies?: string[];
   goal: "gain" | "loss" | "maintenance";
+  is_prenium: boolean;
 }

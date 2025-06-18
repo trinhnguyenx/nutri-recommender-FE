@@ -19,6 +19,12 @@ export const updatePartUserApi = async (userId: string, data: ISignUp) => {
   return await axiosApiInstance.patch(`/auth/user/${userId}`, data);
 };
 
+export const updatePreniumApi = async (userId: string, isPremium: boolean) => {
+  return await axiosApiInstance.patch(`/auth/user/${userId}`, {
+    is_premium: isPremium,
+  });
+};
+
 // meal
 export const recommendApi = async (data: Infor) => {
   return await axiosApiInstance.post("/calories/calculate/", data);
@@ -29,9 +35,12 @@ export const getMealsApi = async (mealPlanId: string) => {
 export const getMealPlansApi = async (userId: string) => {
   return await axiosApiInstance.get(`/calories/meal-plans/${userId}`);
 };
-export const getCalculationResultApi = async (userId: string) => {
-  return await axiosApiInstance.get(`/calories/calculation-result/${userId}`);
+export const getCalculationResultApi = async (userId: string, mealPlanId: string) => {
+  return await axiosApiInstance.get(`/calories/calculation-result`, {
+    params: { userId, mealPlanId }
+  });
 };
+
 
 export const getSuggestedMealsApi = async (
   mealId: string,
@@ -65,6 +74,16 @@ export const updateMealSwapApi = (
   return axiosApiInstance.put("/calories/update/new-meal", {
     mealPlanMealId,
     newMealId,
+  });
+};
+
+export const updateNameMealApi = (
+  mealPlanId: string,
+  newName: string
+) => {
+  return axiosApiInstance.put("/calories/update/meal-plan-name", {
+    mealPlanId,
+    newName,
   });
 };
 

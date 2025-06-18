@@ -1,4 +1,5 @@
 <template>
+  <Header />
   <div class="container">
     <h1 class="title">Chăm sóc dinh dưỡng thông minh, mỗi ngày thêm khỏe mạnh.</h1>
     <p class="subtitle">
@@ -24,7 +25,7 @@
           <h2>Premium</h2>
           <span class="badge">Phổ biến nhất</span>
         </div>
-        <p class="price">5.000₫<span>/tháng</span></p>
+        <p class="price">99.000₫<span>/tháng</span></p>
         <ul>
           <li>Thực đơn đa dạng theo tuần, tháng, tùy chỉnh cá nhân</li>
           <li>Chatbot dinh dưỡng hỗ trợ 24/7</li>
@@ -41,19 +42,22 @@
 
 <script setup>
 import { useUserStore } from '@/store/user.store.ts';
-import { createPaymentIntentApi } from '@/services/api.ts';
-
+import { createPaymentIntentApi, updatePreniumApi } from '@/services/api.ts';
+import Header from '@/views/headerpage/index.vue';
 const userStore = useUserStore();
 const email = userStore.user?.email || '';
 const name = userStore.user?.last_name || '';
-console.log('User Email:', email);
-console.log('User Name:', name);
+const userId = userStore.user?.id || '';
 
 const handleProPayment = async () => {
   try {
     const response = await createPaymentIntentApi(email, name);
-    console.log('Payment Intent:', response.data);
+    if (!response.data || !response.data.checkoutUrl) {
+      throw new Error('Invalid response from payment API');
+    }
+    console.log("Payment intent", response.data);
     window.location.href = response.data.checkoutUrl;
+
   } catch (error) {
     console.error('Payment error:', error);
   }

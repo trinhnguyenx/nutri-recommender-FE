@@ -8,13 +8,22 @@ export interface Infor {
     allergies?: string[];
     weeklyGainRate?: undefined;
     userId?: string;
+    planName?: string;
 }
 export interface CalorieResult {
+  age: number;
+  height: number;
+  weight: number;
+  gender: string;
+  activityLevel: string;
   maintenanceCalories: number;
   targetCalories: number;
   goal: "gain" | "loss" | "maintenance";
   estimatedWeeklyChange: number;
   estimatedDaysToGoal: number;
+  is_active: boolean;
+  createdAt: string; 
+  bmr: number
 }
 
 export interface MealPlanResponse {

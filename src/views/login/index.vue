@@ -72,6 +72,7 @@ const handleLogin = async () => {
         email: data.data.user.email,
         first_name: data.data.user.first_name,
         last_name: data.data.user.last_name,
+        is_prenium: data.data.user.is_premium,
       });
       if (data.data.token.accessToken) {
         try {

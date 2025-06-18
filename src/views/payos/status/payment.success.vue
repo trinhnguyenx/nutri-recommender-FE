@@ -5,6 +5,22 @@
     <RouterLink to="/menu-home" class="back-home">Quay về trang chủ</RouterLink>
   </div>
 </template>
+<script setup>
+import { onMounted } from 'vue';
+
+onMounted(() => {
+  const localData = localStorage.getItem('user');
+  if (localData) {
+    try {
+      const userData = JSON.parse(localData);
+      userData.user.is_prenium = true;
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (e) {
+      console.error('Lỗi khi cập nhật localStorage:', e);
+    }
+  }
+});
+</script>
 
 <style scoped>
 .payment-result {

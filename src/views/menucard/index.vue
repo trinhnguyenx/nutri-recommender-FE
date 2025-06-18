@@ -4,12 +4,26 @@
       <span class="meal-icon">{{ mealIcon }}</span> {{ mealTimeLabel }}
     </h3>
     <div class="meal-list">
+      <div v-if="!props.allowSwap" class="swap-info-box">
+        <p class="info-title">🔄 Muốn thay đổi món ăn theo sở thích?</p>
+        <p class="info-desc">Tính năng <strong>Đổi món</strong> giúp bạn linh hoạt lựa chọn bữa ăn phù hợp với khẩu vị và nhu cầu dinh dưỡng cá nhân.</p>
+        <RouterLink to="/payment-prenium">
+          <button class="upgrade-button">Nâng cấp để sử dụng</button>
+        </RouterLink>
+    </div>
       <div v-for="meal in meals" :key="meal.meal_id" :class="['meal-item', { 'dessert-item': meal.meal_type === 'dessert' }]">
         <p class="meal-name">{{ formattedMealName(meal) }}</p>
         <p class="ingredients">📋 {{ meal.ingredients }}</p>
-        <button class="swap-button" @click="openSwapModal(meal)">🔄 Đổi món</button>
+        <button
+          v-if="props.allowSwap"
+          class="swap-button"
+          @click="openSwapModal(meal)"
+        >
+          🔄 Đổi món
+        </button>      
       </div>
     </div>
+  
     <div class="nutrition-summary">
       <p><strong>🔥 Tổng Calo:</strong> {{ totalNutrition.calories.toFixed(1) }} kcal</p>
       <p><strong>🥩 Tổng Protein:</strong> {{ totalNutrition.protein.toFixed(1) }} g</p>
@@ -18,7 +32,7 @@
     </div>
   </div>
   <!-- // Modal for meal swap suggestions -->
- <div v-if="showSwapModal" class="swap-modal" @click.self="showSwapModal = false">
+ <div v-if="showSwapModal" class="swap-modal" @click="showSwapModal = false">
   <div class="modal-content">
     <h3 class="modal-title">🔄 Chọn món thay thế</h3>
     <div v-if="loadingSuggestions" class="loading-text">Đang tải gợi ý...</div>
@@ -49,6 +63,7 @@ import { useUserStore } from '@/store/user.store';
 import { all } from 'axios';
 
 const userStore = useUserStore();
+
 const showSwapModal = ref(false);
 const selectedMealId = ref('');
 const suggestedMeals = ref([]);
@@ -65,6 +80,10 @@ const props = defineProps({
   type: {
     type: String,
     required: true
+  },
+  allowSwap: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -125,7 +144,6 @@ const openSwapModal = async (meal) => {
   loadingSuggestions.value = true;
 
   try {
-    console.log(meal.meal_id, meal.meal_type, meal.calories, allergies);
     const response = await getSuggestedMealsApi(
       meal.meal_id,
       meal.meal_type,
@@ -350,5 +368,42 @@ const handleMealSwap = async (newMealId) => {
 .close-button:hover {
   background-color: #ef4444;
 }
+
+.swap-info-box {
+  background-color: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-top: 1rem;
+  color: #92400e;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.info-title {
+  font-weight: bold;
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-desc {
+  margin-bottom: 1rem;
+}
+
+.upgrade-button {
+  background-color: #f59e0b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.upgrade-button:hover {
+  background-color: #d97706;
+}
+
 
 </style>

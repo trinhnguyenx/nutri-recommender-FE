@@ -7,6 +7,12 @@
         <form @submit.prevent="handleSubmit">
           <h1 class="h1-content">🥗 Let's calculate your calories!</h1>
           <label>
+            🥗Name Plan
+            <input
+              v-model="form.planName"
+            ></input>
+          </label>
+          <label>
             🧍‍♂️Height (cm)
             <input
               v-model.number="form.height"
@@ -119,6 +125,7 @@ const form = ref<Infor>({
   allergies: [],
   weeklyGainRate: undefined,
   userId: userStore.user?.id || "",
+  planName: "",
 });
 
 

@@ -24,10 +24,10 @@
       <input v-model.number="form.weightTarget" type="number" disabled />
 
       <label>Giới tính:</label>
-      <input :value="form.gender" disabled />
+      <input :value="genderText" disabled />
 
       <label>Mức độ hoạt động:</label>
-      <input v-model="form.activityLevel" disabled />
+      <input v-model="activityText" disabled />
 
       <label>Nguyên liệu dị ứng:</label>
       <input v-model="allergiesText" disabled />
@@ -42,7 +42,6 @@
 
 <script setup>
 import { reactive, computed, watch } from 'vue';
-import { defineProps, defineEmits } from 'vue';
 
 const props = defineProps({
   user: Object
@@ -77,6 +76,20 @@ const allergiesText = computed({
     form.allergies = val.split(',').map((s) => s.trim());
   }
 });
+
+const genderText = computed(() => {
+  if (form.gender === 'male') return 'Nam';
+  if (form.gender === 'female') return 'Nữ';
+  return 'Không xác định';
+});
+
+const activityMap = {
+  sedentary: 'Ít vận động',
+  light: 'Hoạt động nhẹ nhàng',
+  moderate: 'Hoạt động vừa phải',
+  veryactive: 'Hoạt động rất nhiều'
+};
+const activityText = computed(() => activityMap[form.activityLevel] || 'Không rõ');
 
 function submit() {
   emit('update', {

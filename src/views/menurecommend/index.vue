@@ -5,11 +5,20 @@
     <div v-if="calculationResult" class="summary-box">
       <h2 class="summary-title">📊 Tóm tắt tính toán</h2>
       <ul class="summary-list">
+        <li v-if="calculationResult?.is_active">✅ Đang được áp dụng</li>
+        <li v-else>❌ Không được áp dụng</li>
+        <li>👤 Tuổi: <strong>{{ calculationResult?.age }} tuổi</strong></li>
+        <li>📏 Chiều cao: <strong>{{ calculationResult?.height }} cm</strong></li>
+        <li>⚖️ Cân nặng: <strong>{{ calculationResult?.weight }} kg</strong></li>
+        <li>🚻 Giới tính: <strong>{{ calculationResult?.gender === 'Male' ? 'Nam' : 'Nữ' }}</strong></li>
+        <li>🏃 Mức độ vận động: <strong>{{ activityLevelLabel }}</strong></li>
+        <li>🧮 BMR (Tỉ lệ trao đổi chất cơ bản): <strong>{{ calculationResult?.bmr.toFixed(1) }} kcal</strong></li>
         <li>🔥 Calo để duy trì: <strong>{{ calculationResult?.maintenanceCalories.toFixed(1) }} kcal</strong></li>
         <li>🎯 Calo mục tiêu: <strong>{{ calculationResult?.targetCalories.toFixed(1) }} kcal</strong></li>
         <li>🏁 Mục tiêu: <strong>{{ goalText }}</strong></li>
         <li>📈 Tốc độ thay đổi: <strong>{{ calculationResult?.estimatedWeeklyChange.toFixed(1) }} kg/tuần</strong></li>
         <li>⏱️ Thời gian ước tính: <strong>{{ calculationResult?.estimatedDaysToGoal }} ngày</strong></li>
+        <li>📅 Ngày tạo: <strong>{{ formatDate(calculationResult?.createdAt) }}</strong></li>
         <li><strong>Sáng: 25-30% | Trưa: 30-35% | Tối: 25-30% | Phụ: 5-10%</strong></li>
       </ul>
     </div>
@@ -28,10 +37,11 @@
           </div>
           <div v-for="mealTime in orderedMealTimes" :key="mealTime" class="meal-group">
             <div v-if="getMealsByTime(day.meals, mealTime).length > 0" class="meal-time-section">
+              <p class="meal-time-note">  🕒 Giờ ăn: {{ mealTimeNoteMap[mealTime as MealTime] }}</p>
               <MealCard :meals="getMealsByTime(day.meals, mealTime).map(m => ({ ...m.meal, mealPlanMealId: m.mealPlanMealId, meal_time: m.meal_time }))" :type="mealTime" 
               @meal-swapped="refreshData"
+              :allowSwap="is_prenium"
               />
-
             </div>
           </div>
         </div>
@@ -55,9 +65,12 @@ const loading = ref(true);
 const errorMessage = ref('');
 const route = useRoute();
 const userStore = useUserStore();
-
+const is_prenium = computed(() => userStore.user?.is_prenium || false);
 const userId = computed(() => userStore.user?.id || '');
 const mealPlanId = computed(() => route.params.id ? String(route.params.id) : '');
+type MealTimeGain = 'breakfast' | 'snack1' | 'lunch' | 'snack2' | 'dinner' | 'snack3';
+type MealTimeLoss = 'breakfast' | 'lunch' | 'snack2' | 'dinner';
+type MealTime = MealTimeGain | MealTimeLoss;
 
 const goalText = computed(() => {
   if (!calculationResult.value) return '';
@@ -67,6 +80,41 @@ const goalText = computed(() => {
     case 'maintenance': return 'Giữ cân';
     default: return '';
   }
+});
+
+const mealTimeNoteMap = computed<Record<MealTime, string>>(() => {
+  const goal = calculationResult.value?.goal || '';
+  if (goal === 'gain') {
+    return {
+      breakfast: '7:00 sáng',
+      snack1: '9:30 sáng',
+      lunch: '12:00 trưa',
+      snack2: '3:00 chiều',
+      dinner: '6:00 tối',
+      snack3: '8:30 tối',
+    };
+  }
+  return {
+    breakfast: '7:00 sáng',
+    lunch: '12:00 trưa',
+    snack2: '3:30 chiều',
+    dinner: '6:30 tối',
+  } as Record<MealTime, string>; 
+});
+
+
+const activityLevelLabels = {
+  sedentary: 'Ít vận động',
+  light: 'Vận động nhẹ',
+  moderate: 'Vận động vừa phải',
+  veryactive: 'Vận động nhiều',
+} as const;
+
+type ActivityLevel = keyof typeof activityLevelLabels;
+
+const activityLevelLabel = computed(() => {
+  const level = calculationResult.value?.activityLevel as ActivityLevel | undefined;
+  return (level && activityLevelLabels[level]) || calculationResult.value?.activityLevel || '';
 });
 
 const formatDate = (date: string): string => {
@@ -118,13 +166,15 @@ const fetchCalculationResult = async () => {
   if (!userId.value) return;
 
   try {
-    const response = await getCalculationResultApi(userId.value);
+    const response = await getCalculationResultApi(userId.value, mealPlanId.value);
     calculationResult.value = response.data.data || null;
   } catch (error) {
     console.error('Lỗi khi lấy kết quả tính toán:', error);
     errorMessage.value = 'Lỗi khi lấy kết quả tính toán';
   }
 };
+
+
 const refreshData = async () => {
   await fetchMealPlan();
 };
@@ -236,4 +286,12 @@ onMounted(() => {
   color: #dc2626;
   margin: 2rem 0;
 }
+.meal-time-note {
+  font-size: 1.2rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
 </style>

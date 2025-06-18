@@ -102,7 +102,7 @@ onMounted(async () => {
 /* Sidebar styling */
 .sidebar {
   width: 280px;
-  background-color: #76C044;
+  background-color: #2fd18d;
   color: #ffffff;
   padding: 2rem 1.5rem;
   border-radius: 0 20px 20px 0;
@@ -147,16 +147,20 @@ onMounted(async () => {
   cursor: pointer;
   font-size: 1rem;
   font-weight: 500;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-left: 4px solid transparent;
 }
-
 .menu li:hover {
-  background-color: #40c047;
-  transform: translateX(5px);
+  background-color: #17744d;
+  transform: translateX(6px);
+  border-left: 4px solid #ffffff;
 }
 
 .menu li.active {
-  background-color: #388e3c;
+  background-color: #17744d;
   font-weight: 600;
 }
 
@@ -236,6 +240,7 @@ onMounted(async () => {
   .main-content {
     border-radius: 0;
     padding: 1rem;
+    
   }
 }
 </style>
