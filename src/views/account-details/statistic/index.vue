@@ -7,58 +7,61 @@
       <p>Đang tải dữ liệu...</p>
     </div>
 
-    <div v-else-if="is_prenium">
-      <div class="toggle-buttons">
-        <button :class="{ active: mode === 'day' }" @click="mode = 'day'">Calo: Theo ngày</button>
-        <button :class="{ active: mode === 'week' }" @click="mode = 'week'">Calo: Theo tuần</button>
-        <button :class="{ active: mode === 'weight' }" @click="mode = 'weight'">⚖️ Cân nặng</button>
-      </div>
+    <div v-else>
+      <div v-if="is_prenium">
+        <div class="toggle-buttons">
+          <button :class="{ active: mode === 'day' }" @click="mode = 'day'">Calo: Theo ngày</button>
+          <button :class="{ active: mode === 'week' }" @click="mode = 'week'">Calo: Theo tuần</button>
+          <button :class="{ active: mode === 'weight' }" @click="mode = 'weight'">⚖️ Cân nặng</button>
+        </div>
 
-      <Bar
-        v-if="mode === 'day'"
-        :data="caloPerDayData"
-        :options="{ responsive: true, plugins: { legend: { position: 'top' } } }"
-      />
-      <Line
-        v-else-if="mode === 'week'"
-        :data="caloPerWeekData"
-        :options="{ responsive: true, plugins: { legend: { position: 'top' } } }"
-      />
-      <Line
-        v-else
-        :data="weightData"
-        :options="{
-          responsive: true,
-          plugins: { legend: { position: 'top' } },
-          scales: {
-            y: {
-              suggestedMin: 48,
-              suggestedMax: 54,
-              title: {
-                display: true,
-                text: 'Kg'
+        <Bar
+          v-if="mode === 'day'"
+          :data="caloPerDayData"
+          :options="{ responsive: true, plugins: { legend: { position: 'top' } } }"
+        />
+        <Line
+          v-else-if="mode === 'week'"
+          :data="caloPerWeekData"
+          :options="{ responsive: true, plugins: { legend: { position: 'top' } } }"
+        />
+        <Line
+          v-else
+          :data="weightData"
+          :options="{
+            responsive: true,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+              y: {
+                suggestedMin: 48,
+                suggestedMax: 54,
+                title: {
+                  display: true,
+                  text: 'Kg'
+                }
               }
             }
-          }
-        }"
-      />
+          }"
+        />
 
-      <!-- Popup AI -->
-      <div v-if="showAIMessage" class="ai-popup">
-        <button class="close-btn" @click="showAIMessage = false">✖</button>
-        <h3>{{ aiAssessment?.title }}</h3>
-        <p v-html="animatedMessage"></p>
+        <!-- Popup AI -->
+        <div v-if="showAIMessage" class="ai-popup">
+          <button class="close-btn" @click="showAIMessage = false">✖</button>
+          <h3>{{ aiAssessment?.title }}</h3>
+          <p v-html="animatedMessage"></p>
+        </div>
       </div>
-    </div>
 
-    <div v-else class="non-premium-message">
-      <p>Bạn cần nâng cấp lên gói <strong>Premium</strong> để xem thống kê chi tiết.</p>
-      <router-link to="/payment-prenium">
-        <button class="upgrade-button">🔒 Nâng cấp lên Premium</button>
-      </router-link>
+      <div v-else class="non-premium-message">
+        <p>Bạn cần nâng cấp lên gói <strong>Premium</strong> để xem thống kê chi tiết.</p>
+        <router-link to="/payment-prenium">
+          <button class="upgrade-button">🔒 Nâng cấp lên Premium</button>
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue';
