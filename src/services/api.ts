@@ -50,17 +50,6 @@ export const getDayNumberApi = async (userId:any) => {
 };
 
 
-
-// export const getStatisticsByCaloriesApi = async (startDate: string, endDate: string) => {
-//   return await axiosApiInstance.get(`/calories/statistics/calories`, {
-//     params: {
-//       startDate,
-//       endDate
-//     } 
-//   });
-// }
-
-
 export const getSuggestedMealsApi = async (
   mealId: string,
   mealType: string,
@@ -120,10 +109,12 @@ export const getConversationsApi = async (userId: string) => {
 // payment
 export const createPaymentIntentApi = async (
   buyerEmail: string,
-  buyerName: string
+  buyerName: string,
+  userId: string
 ) => {
   return await axiosApiInstance.post(`payos/create-payment/`, {
     buyerEmail,
     buyerName,
+    userId
   });
 };

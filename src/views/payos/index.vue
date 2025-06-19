@@ -48,10 +48,10 @@ const userStore = useUserStore();
 const email = userStore.user?.email || '';
 const name = userStore.user?.last_name || '';
 const userId = userStore.user?.id || '';
-
+console.log("User ID:", userId);
 const handleProPayment = async () => {
   try {
-    const response = await createPaymentIntentApi(email, name);
+    const response = await createPaymentIntentApi(email, name, userId);
     if (!response.data || !response.data.checkoutUrl) {
       throw new Error('Invalid response from payment API');
     }
