@@ -94,6 +94,7 @@ const aiAssessment = ref(null);
 const animatedMessage = ref('');
 const showAIMessage = ref(false);
 
+if(is_prenium) {
 onMounted(async () => {
   if (is_prenium) {
     isLoading.value = true;
@@ -166,8 +167,10 @@ const interval = setInterval(() => {
     } finally {
       isLoading.value = false;
     }
+  } else {
+    isLoading.value = false;
   }
-});
+});}
 
 const weightData = {
   labels: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6', '7/6'],
