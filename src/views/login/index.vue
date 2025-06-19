@@ -73,6 +73,7 @@ const handleLogin = async () => {
         first_name: data.data.user.first_name,
         last_name: data.data.user.last_name,
         is_prenium: data.data.user.is_premium,
+        meal_plan_count: data.data.user.meal_plan_count,
       });
       if (data.data.token.accessToken) {
         try {
