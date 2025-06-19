@@ -94,6 +94,8 @@ const handleLogin = async () => {
 const gotoRegister = () => {
   router.push("/register");
 };
+
+
 </script>
 
 <style scoped>

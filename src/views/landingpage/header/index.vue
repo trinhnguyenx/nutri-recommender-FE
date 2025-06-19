@@ -48,6 +48,7 @@
 
 <script lang="ts" setup>
 import { useRouter } from "vue-router";
+
 const router = useRouter();
 
 const gotoForm = () => {
@@ -57,7 +58,6 @@ const gotoForm = () => {
 const gotoChatbot = () => {
   router.push("/chatbot");
 };
-
 interface MenuItem {
   title: string;
   desc: string;

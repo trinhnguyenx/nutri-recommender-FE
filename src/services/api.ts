@@ -39,7 +39,26 @@ export const getCalculationResultApi = async (userId: string, mealPlanId: string
   return await axiosApiInstance.get(`/calories/calculation-result`, {
     params: { userId, mealPlanId }
   });
+};  
+
+export const getStatisticsApi = async (userId:any) => {
+  return await axiosApiInstance.get(`/calories/statistics/daily/${userId}`);
 };
+
+export const getDayNumberApi = async (userId:any) => {
+  return await axiosApiInstance.get(`/calories/largest-day/${userId}`);
+};
+
+
+
+// export const getStatisticsByCaloriesApi = async (startDate: string, endDate: string) => {
+//   return await axiosApiInstance.get(`/calories/statistics/calories`, {
+//     params: {
+//       startDate,
+//       endDate
+//     } 
+//   });
+// }
 
 
 export const getSuggestedMealsApi = async (

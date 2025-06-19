@@ -31,4 +31,5 @@ export interface User {
   allergies?: string[];
   goal: "gain" | "loss" | "maintenance";
   is_prenium: boolean;
+  meal_plan_count: number;
 }

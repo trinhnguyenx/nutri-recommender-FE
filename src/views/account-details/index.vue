@@ -102,8 +102,8 @@ onMounted(async () => {
 /* Sidebar styling */
 .sidebar {
   width: 280px;
-  background-color: #2fd18d;
-  color: #ffffff;
+  background-color: #bfdaa8;
+  color: black;
   padding: 2rem 1.5rem;
   border-radius: 0 20px 20px 0;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
@@ -154,13 +154,13 @@ onMounted(async () => {
   border-left: 4px solid transparent;
 }
 .menu li:hover {
-  background-color: #17744d;
+  background-color: #21b778;
   transform: translateX(6px);
   border-left: 4px solid #ffffff;
 }
 
 .menu li.active {
-  background-color: #17744d;
+  background-color: #21b778;
   font-weight: 600;
 }
 
