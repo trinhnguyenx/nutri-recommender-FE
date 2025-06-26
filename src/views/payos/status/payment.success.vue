@@ -7,7 +7,9 @@
 </template>
 <script setup>
 import { onMounted } from 'vue';
+import { useUserStore } from "@/store/user.store";
 
+const userStore = useUserStore();
 onMounted(() => {
   const localData = localStorage.getItem('user');
   if (localData) {
@@ -15,6 +17,10 @@ onMounted(() => {
       const userData = JSON.parse(localData);
       userData.user.is_prenium = true;
       localStorage.setItem('user', JSON.stringify(userData));
+      userStore.setUser({
+        ...userData.user,
+        is_prenium: true
+      });
     } catch (e) {
       console.error('Lỗi khi cập nhật localStorage:', e);
     }
