@@ -81,8 +81,10 @@
           </div>
 
           <!-- Hide submit button if no more count -->
-          <button v-if="mealPlanCount > 0" type="submit">👉Submit</button>
-        </form>
+        <button v-if="mealPlanCount > 0" type="submit" :disabled="isLoading">
+          <span v-if="isLoading">⏳ Đang xử lý...</span>
+          <span v-else>👉Submit</span>
+</button>        </form>
       </div>
 
       <div class="img-right">
@@ -100,6 +102,8 @@ import { recommendApi } from "../../services/api";
 import { useRouter } from "vue-router";
 import { useUserStore } from "../../store/user.store";
 import Header from "../../views/headerpage/index.vue";
+
+const isLoading = ref(false);
 
 const router = useRouter();
 const allergyInput = ref("");
@@ -127,6 +131,7 @@ const handleSubmit = async () => {
         .filter((item) => item.length > 0)
     : [];
 
+  isLoading.value = true;
   try {
     const response = await recommendApi(form.value);
     router.push({
@@ -135,8 +140,11 @@ const handleSubmit = async () => {
     });
   } catch (error) {
     console.error("API error:", error);
+  } finally {
+    isLoading.value = false;
   }
 };
+
 </script>
 
 <style scoped>
@@ -286,5 +294,9 @@ button:hover {
   right: -8%;
   width: 40%;
   z-index: 0;
+}
+button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

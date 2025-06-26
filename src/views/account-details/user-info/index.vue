@@ -78,9 +78,9 @@ const allergiesText = computed({
 });
 
 const genderText = computed(() => {
-  if (form.gender === 'male') return 'Nam';
-  if (form.gender === 'female') return 'Nữ';
-  return 'Không xác định';
+  if (form.gender === 'Male') return 'Nam';
+  if (form.gender === 'Female') return 'Nữ';
+  return 'Nữ';
 });
 
 const activityMap = {

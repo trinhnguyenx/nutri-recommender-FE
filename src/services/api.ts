@@ -1,7 +1,7 @@
 import axiosApiInstance from "../api";
 import type { ILogin, ISignUp } from "../types/user";
 import type { Infor } from "../types/meal";
-import type { MessageInput } from "../types/chatbot";
+import type { MessageInput, Message } from "../types/chatbot";
 import axios from "axios";
 axios.defaults.URL = import.meta.env.VITE_API_URL;
 
@@ -41,13 +41,17 @@ export const getCalculationResultApi = async (userId: string, mealPlanId: string
   });
 };  
 
-export const getStatisticsApi = async (userId:any) => {
-  return await axiosApiInstance.get(`/calories/statistics/daily/${userId}`);
-};
-
 export const getDayNumberApi = async (userId:any) => {
   return await axiosApiInstance.get(`/calories/largest-day/${userId}`);
 };
+
+export const setFavoriteMealApi = async (mealId: string, userId: string, isFavorite: boolean) => {
+  return await axiosApiInstance.put("/calories/favorite-meal", {
+    mealId,
+    userId,
+    isFavorite,
+  });
+}
 
 
 export const getSuggestedMealsApi = async (
@@ -105,6 +109,16 @@ export const getMessagesApi = async (conversationId: string) => {
 export const getConversationsApi = async (userId: string) => {
   return await axiosApiInstance.get(`/chatbot/conversations/${userId}`);
 };
+export const createMessageApi = async (data: Message) => {
+  return await axiosApiInstance.post("/chatbot/create-message", data);
+}
+export const addIngredientApi = async (message: string, conversationId: string, userId: string) => {
+  return await axiosApiInstance.post("chatbot/add-ingredients", {  
+    message,
+    conversationId,
+    userId
+  });
+}
 
 // payment
 export const createPaymentIntentApi = async (
@@ -117,4 +131,49 @@ export const createPaymentIntentApi = async (
     buyerName,
     userId
   });
+};
+//statistics
+export const recordUserProgressApi = (
+  userId: string,
+  {
+    weight,
+    meals,
+    sick,
+    sleep,
+    hunger,
+    note,
+    caloBreakfast,
+    caloLunch,
+    caloDinner,
+    caloSnack,
+  }: {
+    weight: number | string;
+    meals: string;
+    sick?: string;
+    sleep?: string;
+    hunger?: string;
+    note?: string;
+    caloBreakfast?: number;
+    caloLunch?: number;
+    caloDinner?: number;
+    caloSnack?: number;
+  }
+) => {
+  return axiosApiInstance.post("/calories/progress/record", {
+    userId,
+    weight,
+    meals,
+    sick,
+    sleep,
+    hunger,
+    note,
+    caloBreakfast,
+    caloLunch,
+    caloDinner,
+    caloSnack,
+  });
+};
+
+export const getUserProgress = async (userId: string) => {
+  return await axiosApiInstance.get(`/calories/progress/${userId}`);
 };

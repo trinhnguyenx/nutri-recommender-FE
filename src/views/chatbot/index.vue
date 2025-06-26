@@ -24,6 +24,11 @@
 
     <!-- Chat Window -->
     <div class="chat-window">
+      <div style="padding: 0 24px 12px; display: flex; justify-content: flex-end;">
+      <button @click="handleAddMeal" style="background-color: #ffa726; color: white; font-weight: bold; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;">
+        ➕ Thêm món ăn
+      </button>
+    </div>
       <div class="messages">
         <div
           v-for="(msg, index) in messages"
@@ -81,7 +86,10 @@ import {
   getConversationsApi,
   getMessagesApi,
   sendMesssageApi,
-} from '@/services/api.ts';
+  createMessageApi,
+  addIngredientApi,
+}
+from '@/services/api.ts';
 import { useUserStore } from '../../store/user.store';
 import Header from "@/views/headerpage/index.vue";
 
@@ -93,7 +101,8 @@ const activeConversationId = ref('');
 const userInput = ref('');
 const isLoading = ref(false);
 const typingText = ref('');
-const userId = userStore.user?.id || 'hardcoded-user-id';
+const userId = userStore.user?.id || '';
+const isAddingMeal = ref(false);
 
 onMounted(async () => {
   const { data } = await getConversationsApi(userId);
@@ -103,6 +112,32 @@ onMounted(async () => {
     sender: 'bot',
   }];
 });
+const handleAddMeal = async () => {
+  isAddingMeal.value = true
+  const promptText = `<strong>Hãy cho mình biết tên món ăn bạn muốn thêm hoặc nguyên liệu bạn đang có nhé!</strong> Mình sẽ giúp bạn tạo ra một món ăn phù hợp. 🍽️`;
+
+  const payload = {
+    message: promptText,
+    conversationId: activeConversationId.value || '',
+    sender: 'ai'
+  };
+  console.log('Adding default meal prompt:', payload);
+
+  try {
+    const { data: newMessage } = await createMessageApi(payload);
+
+    if (!activeConversationId.value) {
+      const { data } = await getConversationsApi(userId);
+      conversations.value = data;
+      activeConversationId.value = data[0]?.id || '';
+    }
+
+    messages.value.push({ text: promptText, sender: 'ai' });
+  } catch (error) {
+    console.error('Error adding default meal prompt:', error);
+  }
+};
+
 
 const sendMessage = async () => {
   const text = userInput.value.trim();
@@ -112,7 +147,15 @@ const sendMessage = async () => {
   userInput.value = '';
   isLoading.value = true;
 
+  
+
   try {
+    if (isAddingMeal.value) {
+      await handleAddMealSubmission(text); 
+      isAddingMeal.value = false;           
+      return;
+    }
+
     const { data: aiResponse } = await sendMesssageApi({
       userId,
       message: text,
@@ -126,7 +169,6 @@ const sendMessage = async () => {
         activeConversationId.value = data[0]?.id || '';
       });
     }
-
     const fullText = parseAiMessage(typeof aiResponse === 'string' ? aiResponse : aiResponse.reply || '');
 
     // Gõ chữ nhanh hơn
@@ -156,9 +198,36 @@ const selectConversation = async (id) => {
 };
 
 
+const handleAddMealSubmission = async (text) => {
+  let aires = null;
+  try {
+    console.log('Submitting meal:', text);
+    aires = await addIngredientApi({
+        userId,
+        message: text,
+        conversationId: activeConversationId.value || '',
+    });
+
+    if (aires && aires.data) {
+      messages.value.push({
+        text: `${aires.data.aimessage}`,
+        sender: 'bot'
+      });
+    }
+  } catch (error) {
+    console.error('Lỗi khi thêm món ăn:', error);
+    messages.value.push({
+      text: aires?.aimessage || 'Đã xảy ra lỗi khi thêm món ăn. Vui lòng thử lại.',
+      sender: 'bot'
+    });
+  }
+};
+
+
+
+
 
 const formatDate = (date) => new Date(date).toLocaleString();
-
 const parseAiMessage = (text) => {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')               // bold

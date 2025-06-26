@@ -64,7 +64,7 @@
 
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import {
   Chart as ChartJS,
   BarElement,
@@ -77,7 +77,7 @@ import {
 } from 'chart.js';
 import { Bar, Line } from 'vue-chartjs';
 import { useUserStore } from "@/store/user.store";
-import { getStatisticsApi } from '@/services/api';
+import { getUserProgress } from '@/services/api';
 
 const userStore = useUserStore();
 
@@ -93,29 +93,42 @@ const caloPerWeekData = ref({ labels: [], datasets: [] });
 const aiAssessment = ref(null);
 const animatedMessage = ref('');
 const showAIMessage = ref(false);
-
+const weightTarget = ref(52);
 onMounted(async () => {
   if (is_prenium) {
     isLoading.value = true;
     try {
-      const response = await getStatisticsApi(userId);
-      const statisticsData = response.data.data.calorieSummaryByDay;
-      aiAssessment.value = response.data.data.aiAssessment;
+      const response = await getUserProgress(userId);
+      const statisticsData = response.data.data.progress;
+      weightTarget.value = response.data.data.weightTarget;
+      aiAssessment.value = null;
 
-      const labels = Object.values(statisticsData).map(item => {
-        const date = new Date(item.created_at);
+      const sortedProgress = [...statisticsData].sort((a, b) => new Date(a.recordedAt) - new Date(b.recordedAt));
+
+     const last3Days = sortedProgress.slice(-3);
+
+      const weightLabels = sortedProgress.map(item => {
+        const date = new Date(item.recordedAt);
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+      });
+      weightData.labels = weightLabels;
+      const dayLabels = last3Days.map(item => {
+        const date = new Date(item.recordedAt);
         return `${date.getDate()}/${date.getMonth() + 1}`;
       });
 
-      const breakfastCalories = Object.values(statisticsData).map(item => item.breakfast_calories);
-      const lunchCalories = Object.values(statisticsData).map(item => item.lunch_calories);
-      const dinnerCalories = Object.values(statisticsData).map(item => item.dinner_calories);
-      const snackCalories = Object.values(statisticsData).map(item =>
-        item.snack1_calories + item.snack2_calories + item.snack3_calories
-      );
+      const weightValues = sortedProgress.map(item => item.weight);
+      weightData.datasets[0].data = weightValues;
+      const goalWeights = new Array(weightValues.length).fill(weightTarget.value);
+      weightData.datasets[1].data = goalWeights;
+
+      const breakfastCalories = last3Days.map(item => item.caloBreakfast);
+      const lunchCalories = last3Days.map(item => item.caloLunch);
+      const dinnerCalories = last3Days.map(item => item.caloDinner);
+      const snackCalories = last3Days.map(item => item.caloSnack);
 
       caloPerDayData.value = {
-        labels,
+        labels: dayLabels,
         datasets: [
           { label: 'Sáng', backgroundColor: '#34d399', data: breakfastCalories },
           { label: 'Trưa', backgroundColor: '#60a5fa', data: lunchCalories },
@@ -124,11 +137,19 @@ onMounted(async () => {
         ],
       };
 
-      const totalDailyCalories = Object.values(statisticsData).map(item => item.total_daily_calories);
-      const goalCalories = Object.values(statisticsData).map(item => item.targetCalories);
+      const last7Days = sortedProgress.slice(-7);
+      const weekLabels = last7Days.map(item => {
+        const date = new Date(item.recordedAt);
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+      });
+
+            const totalDailyCalories = last7Days.map(item =>
+        item.caloBreakfast + item.caloLunch + item.caloDinner + item.caloSnack
+      );
+        const goalCalories = last7Days.map(item => item.targetCalories);
 
       caloPerWeekData.value = {
-        labels,
+        labels : weekLabels,
         datasets: [
           {
             label: 'Calo đã nạp',
@@ -146,20 +167,21 @@ onMounted(async () => {
         ],
       };
 
-      // Hiện popup từ từ
-      showAIMessage.value = true;
-      let index = 0;
-      const formattedText = aiAssessment.value.reply
-  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-  .replace(/\n/g, '<br>');
-animatedMessage.value = '';
-const interval = setInterval(() => {
-  if (index < formattedText.length) {
-    animatedMessage.value += formattedText[index++];
-  } else {
-    clearInterval(interval);
-  }
-}, 10);
+      if (aiAssessment.value?.reply) {
+        showAIMessage.value = true;
+        let index = 0;
+        const formattedText = aiAssessment.value.reply
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\n/g, '<br>');
+        animatedMessage.value = '';
+        const interval = setInterval(() => {
+          if (index < formattedText.length) {
+            animatedMessage.value += formattedText[index++];
+          } else {
+            clearInterval(interval);
+          }
+        }, 10);
+}
   
     } catch (error) {
       console.error("Failed to fetch statistics:", error);
@@ -171,24 +193,24 @@ const interval = setInterval(() => {
   }
 });
 
-const weightData = {
-  labels: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6', '7/6'],
+const weightData = reactive({
+  labels: [],
   datasets: [
     {
       label: 'Cân nặng',
       borderColor: '#3b82f6',
       backgroundColor: 'rgba(59, 130, 246, 0.2)',
       fill: true,
-      data: [50.2, 50.7, 51, 51.2, 51.6, 51.8, 52],
+      data: [],
     },
     {
       label: 'Mục tiêu',
       borderColor: '#f43f5e',
       borderDash: [5, 5],
-      data: [52, 52, 52, 52, 52, 52, 52],
+      data: [],
     },
   ],
-};
+});
 </script>
 
 <style scoped>

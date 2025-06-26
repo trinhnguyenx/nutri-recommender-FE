@@ -51,6 +51,10 @@ const routes = [
     path: "/payment-cancel",
     component: () => import("../views/payos/status/payment.cancel.vue"),
   },
+  {
+    path: "/notification-check",
+    component: () => import("../views/formcheck/index.vue"),
+  }
 ];
 
 const router = createRouter({

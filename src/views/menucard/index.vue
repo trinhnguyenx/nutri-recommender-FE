@@ -11,8 +11,13 @@
           <button class="upgrade-button">Nâng cấp để sử dụng</button>
         </RouterLink>
     </div>
-      <div v-for="meal in meals" :key="meal.meal_id" :class="['meal-item', { 'dessert-item': meal.meal_type === 'dessert' }]">
-        <p class="meal-name">{{ formattedMealName(meal) }}</p>
+      <div v-for="meal in localMeals" :key="meal.meal_id" :class="['meal-item', { 'dessert-item': meal.meal_type === 'dessert' }]">
+        <div class="meal-header">
+          <p class="meal-name">{{ formattedMealName(meal) }}</p>
+          <button class="favorite-button" @click="toggleFavorite(meal)">
+            <span>{{ meal.is_favourite ? '❤️' : '🤍' }}</span>
+          </button>
+        </div>
         <p class="ingredients">📋 {{ meal.ingredients }}</p>
         <button
           v-if="props.allowSwap"
@@ -20,7 +25,7 @@
           @click="openSwapModal(meal)"
         >
           🔄 Đổi món
-        </button>      
+        </button> 
       </div>
     </div>
   
@@ -57,10 +62,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { getSuggestedMealsApi, updateMealSwapApi } from '@/services/api';
+import { ref, computed, watch} from 'vue';
+import { getSuggestedMealsApi, updateMealSwapApi, setFavoriteMealApi } from '@/services/api';
 import { useUserStore } from '@/store/user.store';
-import { all } from 'axios';
 
 const userStore = useUserStore();
 
@@ -69,7 +73,7 @@ const selectedMealId = ref('');
 const suggestedMeals = ref([]);
 const loadingSuggestions = ref(false);
 const allergies = userStore.user?.allergies || [];
-
+const userId = userStore.user?.id || '';
 const emit = defineEmits(["meal-swapped"]);
 const props = defineProps({
   meals: {
@@ -85,6 +89,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   }
+});
+const localMeals = ref([...props.meals]);
+watch(() => props.meals, (newMeals) => {
+  localMeals.value = [...newMeals];
 });
 
 const mealIconMap = {
@@ -138,6 +146,18 @@ const formattedMealName = (meal) => {
   return meal.name;
 };
 
+const toggleFavorite = async (meal) => {
+  try {
+    const newStatus = !meal.is_favourite;
+    await setFavoriteMealApi(meal.meal_id,userId, newStatus);
+    const target = localMeals.value.find((m) => m.meal_id === meal.meal_id);
+    if (target) {
+      target.is_favourite = newStatus;
+    }  } catch (error) {
+    console.error("Lỗi khi cập nhật món yêu thích:", error);
+  }
+};
+
 const openSwapModal = async (meal) => {
   selectedMealId.value = meal.mealPlanMealId;
   showSwapModal.value = true;
@@ -170,9 +190,6 @@ const handleMealSwap = async (newMealId) => {
     console.error("Lỗi khi cập nhật món ăn:", e);
   }
 };
-
-
-
 
 </script>
 
@@ -403,6 +420,25 @@ const handleMealSwap = async (newMealId) => {
 
 .upgrade-button:hover {
   background-color: #d97706;
+}
+
+.meal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.favorite-button {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #ef4444;
+  transition: transform 0.2s;
+}
+
+.favorite-button:hover {
+  transform: scale(1.2);
 }
 
 

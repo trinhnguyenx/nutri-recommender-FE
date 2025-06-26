@@ -52,6 +52,9 @@ export interface Meal {
   carbs: number;
   ingredients: string;
   meal_type: string;
+  suitable: string;
+  is_favorite: boolean;
+  
 }
 
 export interface MealEntry {

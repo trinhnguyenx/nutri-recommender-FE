@@ -32,10 +32,10 @@
           <a href="#" @click.prevent="gotoRegister">Sign Up</a>
         </p>
 
-        <div class="oauth-buttons">
+        <!-- <div class="oauth-buttons">
           <button class="google">Log in with Google</button>
           <button class="apple">Log in with Apple</button>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -65,6 +65,8 @@ const handleLogin = async () => {
       const data = res["data"];
       localStorage.setItem("accessToken", data.data.token.accessToken);
       localStorage.setItem("refreshToken", data.data.token.refreshToken);
+      localStorage.setItem("user", JSON.stringify(data.data.user));
+      localStorage.setItem("isLoggedIn", "true");
       // Set user data in store
       const userStore = useUserStore();
       userStore.setUser({

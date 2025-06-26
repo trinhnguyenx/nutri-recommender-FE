@@ -19,7 +19,6 @@
         <li>📈 Tốc độ thay đổi: <strong>{{ calculationResult?.estimatedWeeklyChange.toFixed(1) }} kg/tuần</strong></li>
         <li>⏱️ Thời gian ước tính: <strong>{{ calculationResult?.estimatedDaysToGoal }} ngày</strong></li>
         <li>📅 Ngày tạo: <strong>{{ formatDate(calculationResult?.createdAt) }}</strong></li>
-        <li><strong>Sáng: 25-30% | Trưa: 30-35% | Tối: 25-30% | Phụ: 5-10%</strong></li>
       </ul>
     </div>
     <div class="meal-plan-page">

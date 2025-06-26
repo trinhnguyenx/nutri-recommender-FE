@@ -1,6 +1,6 @@
 <template>
   <header class="header" >
-    <div class="logo">HEALTHYFIT</div>
+    <div class="logo" @click="goToHome">HEALTHYFIT</div>
     <nav class="nav">
       <a href="/menu-home">Home</a>
       <a href="#">Menu</a>
@@ -50,9 +50,15 @@ const goToProfile = () => {
   showMenu.value = false;
 };
 
+const goToHome = () => {
+  router.push("/menu-home");
+  showMenu.value = false;
+};
+
 const logout = () => {
   userStore.logout();
   router.push("/login");
+  localStorage.setItem("isLoggedIn", "false");
   showMenu.value = false;
 };
 
@@ -93,6 +99,7 @@ onBeforeUnmount(() => {
 .logo {
   font-weight: bold;
   font-size: 24px;
+  cursor: pointer;
 }
 
 .nav {

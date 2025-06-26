@@ -16,6 +16,7 @@ const userStore = useUserStore();
 const logout = () => {
   userStore.logout();
   router.push("/login");
+  localStorage.setItem("isLoggedIn", "false");
 };
 </script>
 
