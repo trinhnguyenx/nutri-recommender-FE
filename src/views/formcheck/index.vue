@@ -91,6 +91,7 @@
 import { ref, reactive } from 'vue'
 import {recordUserProgressApi} from '@/services/api'
 import { useUserStore } from '@/store/user.store';
+import { ElNotification } from "element-plus";
 
 const userStore = useUserStore();
 const userId = userStore.user?.id || '';
@@ -145,6 +146,13 @@ const submitForm = async () => {
   try {
     await recordUserProgressApi(userId, payload);
     console.log("✅ Gửi dữ liệu thành công:", payload);
+
+        ElNotification({
+        title: 'Thành công',
+        message: 'Tiến trình của bạn đã được cập nhật!',
+        type: 'success',
+      });
+
     localStorage.setItem('dailyFormDate', today);
     close();
   } catch (error) {

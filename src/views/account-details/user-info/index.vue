@@ -42,6 +42,7 @@
 
 <script setup>
 import { reactive, computed, watch } from 'vue';
+import { ElNotification } from "element-plus";
 
 const props = defineProps({
   user: Object
@@ -97,6 +98,11 @@ function submit() {
     last_name: form.last_name,
     email: form.email
   });
+     ElNotification({
+  title: 'Thành công',
+  message: 'Thao tác thành công!',
+  type: 'success',
+});
 }
 </script>
 

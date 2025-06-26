@@ -29,6 +29,8 @@
             <button class="edit-btn" @click.stop="startEditing(plan)">
               ✏️
             </button>
+            <button class="delete-btn" @click.stop="deletePlan(plan.id)">🗑️</button>
+
           </template>
         </div>
 
@@ -55,10 +57,10 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { getMealPlansApi, updateNameMealApi } from "@/services/api";
+import { getMealPlansApi, updateNameMealApi, deleteMealPlanApi } from "@/services/api";
 import { useUserStore } from "@/store/user.store";
 import { useRouter } from "vue-router";
-
+import { ElMessageBox, ElNotification } from "element-plus"; 
 const router = useRouter();
 const userStore = useUserStore();
 const userId = userStore.user?.id || "";
@@ -93,6 +95,39 @@ const saveName = async (plan) => {
 const formatDate = (dateStr) => {
   const d = new Date(dateStr);
   return isNaN(d) ? dateStr : d.toLocaleDateString("vi-VN");
+};
+
+const deletePlan = async (planId) => {
+  try {
+    const confirm = await ElMessageBox.confirm(
+      "Bạn có chắc chắn muốn xoá kế hoạch này không?",
+      "Xác nhận xoá",
+      {
+        confirmButtonText: "Xoá",
+        cancelButtonText: "Huỷ",
+        type: "warning",
+      }
+    );
+
+    await deleteMealPlanApi(planId, userId);
+    console.log("Đã xoá kế hoạch:", planId, userId);
+    mealPlans.value = mealPlans.value.filter(plan => plan.id !== planId);
+
+    ElNotification({
+      title: "Thành công",
+      message: "Đã xoá kế hoạch!",
+      type: "success",
+    });
+  } catch (error) {
+    if (error !== "cancel") {
+      console.error("Lỗi khi xoá kế hoạch:", error);
+      ElNotification({
+        title: "Lỗi",
+        message: "Không thể xoá kế hoạch. Vui lòng thử lại!",
+        type: "error",
+      });
+    }
+  }
 };
 
 onMounted(async () => {
@@ -206,5 +241,20 @@ onMounted(async () => {
   color: #10b981;
   margin-left: 0.4rem;
 }
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-left: 0.5rem;
+  color: #dc2626;
+  transition: transform 0.2s;
+}
+
+.delete-btn:hover {
+  transform: scale(1.1);
+}
+
 
 </style>

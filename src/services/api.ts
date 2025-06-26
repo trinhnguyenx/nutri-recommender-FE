@@ -53,6 +53,15 @@ export const setFavoriteMealApi = async (mealId: string, userId: string, isFavor
   });
 }
 
+export const deleteMealPlanApi = async (mealPlanId: string, userId: string) => {
+  return await axiosApiInstance.delete("/calories/meal-plan/delete", {
+    params: {
+      mealPlanId,
+      userId,
+    },
+  });
+}
+
 
 export const getSuggestedMealsApi = async (
   mealId: string,

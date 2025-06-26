@@ -102,6 +102,7 @@ import { recommendApi } from "../../services/api";
 import { useRouter } from "vue-router";
 import { useUserStore } from "../../store/user.store";
 import Header from "../../views/headerpage/index.vue";
+import { ElNotification } from "element-plus";
 
 const isLoading = ref(false);
 
@@ -134,12 +135,22 @@ const handleSubmit = async () => {
   isLoading.value = true;
   try {
     const response = await recommendApi(form.value);
+    ElNotification({
+  title: 'Thành công',
+  message: 'Thực đơn của bạn đã sẵn sàng!',
+  type: 'success',
+});
     router.push({
       name: "Recommend",
       params: { id: response.data.data.mealPlanId },
     });
   } catch (error) {
     console.error("API error:", error);
+     ElNotification({
+            title: "Error",
+            message: "Tạo thực đơn thất bại!",
+            type: "error",
+          });
   } finally {
     isLoading.value = false;
   }

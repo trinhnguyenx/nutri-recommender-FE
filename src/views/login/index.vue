@@ -79,9 +79,13 @@ const handleLogin = async () => {
       });
       if (data.data.token.accessToken) {
         try {
+           ElNotification({
+          title: 'Success',
+          message: 'Login successful!',
+          type: 'success',
+        })
           router.push("/menu-home");
         } catch (error) {
-          console.log(error);
           ElNotification({
             title: "Error",
             message: "Login Failed!",

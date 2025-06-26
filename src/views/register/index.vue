@@ -16,10 +16,6 @@
             <button type="submit">Sign up</button>
           </form>
           <p class="signin-text">Already have an account? <a href="#" @click.prevent="gotoLogin">Sign In</a></p>
-          <div class="oauth-buttons">
-            <button class="google">Sign up with Google</button>
-            <button class="apple">Sign up with Apple</button>
-          </div>
         </div>
       </div>
     </div>

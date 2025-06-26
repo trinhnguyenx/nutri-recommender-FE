@@ -65,6 +65,7 @@
 import { ref, computed, watch} from 'vue';
 import { getSuggestedMealsApi, updateMealSwapApi, setFavoriteMealApi } from '@/services/api';
 import { useUserStore } from '@/store/user.store';
+import { ElNotification } from "element-plus";
 
 const userStore = useUserStore();
 
@@ -185,6 +186,11 @@ const handleMealSwap = async (newMealId) => {
     await updateMealSwapApi(selectedMealId.value, newMealId);
     showSwapModal.value = false;
     emit("meal-swapped");
+    ElNotification({
+  title: 'Thành công',
+  message: 'Đổi món ăn thành công!',
+  type: 'success',
+});
 
   } catch (e) {
     console.error("Lỗi khi cập nhật món ăn:", e);
