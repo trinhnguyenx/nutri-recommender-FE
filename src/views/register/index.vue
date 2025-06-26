@@ -13,7 +13,11 @@
             </div>
             <input v-model="email" type="email" placeholder="Email" required />
             <input v-model="password" type="password" placeholder="Password" required />
-            <button type="submit">Sign up</button>
+            <button type="submit" :disabled="isLoading">
+              <span v-if="isLoading" class="spinner"></span>
+              <span v-else>Sign up</span>
+            </button>
+
           </form>
           <p class="signin-text">Already have an account? <a href="#" @click.prevent="gotoLogin">Sign In</a></p>
         </div>
@@ -34,8 +38,11 @@
   const lastName = ref('');
   const email = ref('');
   const password = ref('');
-  
+  const isLoading = ref(false);
+
   const handleSubmit = async () => {
+      isLoading.value = true;
+
   const payload = {
     email: email.value,
     password: password.value,
@@ -62,6 +69,8 @@
       message: 'Registration failed. Please check your data and try again.',
       type: 'error',
     })
+  } finally {
+    isLoading.value = false;
   }
 }
   const gotoLogin = () => {
@@ -178,5 +187,26 @@
     background-color: black;
     color: white;
   }
+  .spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid white;
+  border-top: 3px solid #5c27fe;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
   </style>
   

@@ -24,7 +24,10 @@
           <div class="forgot-password">
             <a href="#">Forgot your password?</a>
           </div>
-          <button type="submit">Log In</button>
+          <button type="submit" :disabled="isLoading">
+            <span v-if="isLoading" class="spinner"></span>
+            <span v-else>Log In</span>
+          </button>        
         </form>
 
         <p class="signup-text">
@@ -55,8 +58,10 @@ const user = ref<ILogin>({
   email: "",
   password: "",
 });
+const isLoading = ref(false);
 
 const handleLogin = async () => {
+    isLoading.value = true;
   try {
     await loginApi({
       password: user.value.password,
@@ -96,6 +101,8 @@ const handleLogin = async () => {
     });
   } catch (error) {
     console.log(error);
+  } finally {
+    isLoading.value = false;
   }
 };
 const gotoRegister = () => {
@@ -229,4 +236,25 @@ button[type="submit"]:hover {
   background-color: black;
   color: white;
 }
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid white;
+  border-top: 3px solid #5c27fe;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 </style>
