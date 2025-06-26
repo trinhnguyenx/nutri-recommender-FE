@@ -128,6 +128,9 @@ export const addIngredientApi = async (message: string, conversationId: string, 
     userId
   });
 }
+export const getchatbotstatisticsApi = async (message: string) => {
+  return await axiosApiInstance.post(`/chatbot/statistics`, {message});
+}
 
 // payment
 export const createPaymentIntentApi = async (

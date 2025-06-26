@@ -77,7 +77,7 @@ import {
 } from 'chart.js';
 import { Bar, Line } from 'vue-chartjs';
 import { useUserStore } from "@/store/user.store";
-import { getUserProgress } from '@/services/api';
+import { getUserProgress, getchatbotstatisticsApi } from '@/services/api';
 
 const userStore = useUserStore();
 
@@ -101,7 +101,8 @@ onMounted(async () => {
       const response = await getUserProgress(userId);
       const statisticsData = response.data.data.progress;
       weightTarget.value = response.data.data.weightTarget;
-      aiAssessment.value = null;
+      aiAssessment.value = await getchatbotstatisticsApi(response.data.data);
+      console.log("AI Assessment:", aiAssessment.value);
 
       const sortedProgress = [...statisticsData].sort((a, b) => new Date(a.recordedAt) - new Date(b.recordedAt));
 
@@ -167,7 +168,7 @@ onMounted(async () => {
         ],
       };
 
-      if (aiAssessment.value?.reply) {
+      if (aiAssessment.value?.title) {
         showAIMessage.value = true;
         let index = 0;
         const formattedText = aiAssessment.value.reply
