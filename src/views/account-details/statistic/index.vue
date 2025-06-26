@@ -15,40 +15,65 @@
           <button :class="{ active: mode === 'weight' }" @click="mode = 'weight'">⚖️ Cân nặng</button>
         </div>
 
-        <Bar
-          v-if="mode === 'day'"
-          :data="caloPerDayData"
-          :options="{ responsive: true, plugins: { legend: { position: 'top' } } }"
-        />
-        <Line
-          v-else-if="mode === 'week'"
-          :data="caloPerWeekData"
-          :options="{ responsive: true, plugins: { legend: { position: 'top' } } }"
-        />
-        <Line
-          v-else
-          :data="weightData"
-          :options="{
-            responsive: true,
-            plugins: { legend: { position: 'top' } },
-            scales: {
-              y: {
-                suggestedMin: 48,
-                suggestedMax: 54,
-                title: {
-                  display: true,
-                  text: 'Kg'
-                }
+        <Bar v-if="mode === 'day'" :data="caloPerDayData" :options="{ responsive: true, plugins: { legend: { position: 'top' } } }" />
+        <Line v-else-if="mode === 'week'" :data="caloPerWeekData" :options="{ responsive: true, plugins: { legend: { position: 'top' } } }" />
+        <Line v-else :data="weightData" :options="{
+          responsive: true,
+          plugins: { legend: { position: 'top' } },
+          scales: {
+            y: {
+              suggestedMin: 48,
+              suggestedMax: 54,
+              title: {
+                display: true,
+                text: 'Kg'
               }
             }
-          }"
-        />
+          }
+        }" />
 
         <!-- Popup AI -->
-        <div v-if="showAIMessage" class="ai-popup">
+        <div v-if="showAIMessage && aiAssessment" class="ai-popup">
           <button class="close-btn" @click="showAIMessage = false">✖</button>
-          <h3>{{ aiAssessment?.title }}</h3>
-          <p v-html="animatedMessage"></p>
+          <h3>🧠 Đánh giá từ AI</h3>
+
+          <div class="section">
+            <h4>📊 Tóm tắt</h4>
+            <ul>
+              <li><strong>Calo trung bình:</strong> {{ aiAssessment.data.summary?.average_calories_intake }}</li>
+              <li><strong>Mức độ tuân thủ:</strong> {{ aiAssessment.data.summary?.adherence_assessment }}</li>
+              <li><strong>Điểm nổi bật:</strong> {{ aiAssessment.data.summary?.performance_highlights }}</li>
+              <li><strong>Cần cải thiện:</strong> {{ aiAssessment.data.summary?.improvement_areas }}</li>
+            </ul>
+          </div>
+
+          <div class="section">
+          <h4>💡 Lời khuyên & Động viên</h4>
+          <ul>
+            <li><strong>Phản hồi tích cực:</strong> {{ aiAssessment.data.advice_and_encouragement?.positive_feedback }}</li>
+            <li>
+              <strong>Gợi ý tối ưu:</strong>
+              <ul>
+                <li v-for="(tip, index) in aiAssessment.data.advice_and_encouragement?.optimization_tips" :key="'opt' + index">
+                  👉 {{ tip }}
+                </li>
+              </ul>
+            </li>
+            <li>
+              <strong>Mẹo chung:</strong>
+              <ul>
+                <li v-for="(tip, index) in aiAssessment.data.advice_and_encouragement?.general_tips" :key="'gen' + index">
+                   {{ tip }}
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+
+          <div class="section">
+            <h4> Kết luận</h4>
+            <p>{{ aiAssessment.data.conclusion }}</p>
+          </div>
         </div>
       </div>
 
@@ -61,7 +86,6 @@
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
@@ -79,120 +103,19 @@ import { Bar, Line } from 'vue-chartjs';
 import { useUserStore } from "@/store/user.store";
 import { getUserProgress, getchatbotstatisticsApi } from '@/services/api';
 
-const userStore = useUserStore();
+ChartJS.register(BarElement, CategoryScale, LinearScale, PointElement, LineElement, Legend, Tooltip);
 
+const userStore = useUserStore();
 const is_prenium = userStore.user?.is_prenium || false;
 const userId = userStore.user?.id || '';
-ChartJS.register(BarElement, CategoryScale, LinearScale, PointElement, LineElement, Legend, Tooltip);
 
 const mode = ref('day');
 const isLoading = ref(true);
-
 const caloPerDayData = ref({ labels: [], datasets: [] });
 const caloPerWeekData = ref({ labels: [], datasets: [] });
 const aiAssessment = ref(null);
-const animatedMessage = ref('');
 const showAIMessage = ref(false);
 const weightTarget = ref(52);
-onMounted(async () => {
-  if (is_prenium) {
-    isLoading.value = true;
-    try {
-      const response = await getUserProgress(userId);
-      const statisticsData = response.data.data.progress;
-      weightTarget.value = response.data.data.weightTarget;
-      aiAssessment.value = await getchatbotstatisticsApi(response.data.data);
-      console.log("AI Assessment:", aiAssessment.value);
-
-      const sortedProgress = [...statisticsData].sort((a, b) => new Date(a.recordedAt) - new Date(b.recordedAt));
-
-     const last3Days = sortedProgress.slice(-3);
-
-      const weightLabels = sortedProgress.map(item => {
-        const date = new Date(item.recordedAt);
-        return `${date.getDate()}/${date.getMonth() + 1}`;
-      });
-      weightData.labels = weightLabels;
-      const dayLabels = last3Days.map(item => {
-        const date = new Date(item.recordedAt);
-        return `${date.getDate()}/${date.getMonth() + 1}`;
-      });
-
-      const weightValues = sortedProgress.map(item => item.weight);
-      weightData.datasets[0].data = weightValues;
-      const goalWeights = new Array(weightValues.length).fill(weightTarget.value);
-      weightData.datasets[1].data = goalWeights;
-
-      const breakfastCalories = last3Days.map(item => item.caloBreakfast);
-      const lunchCalories = last3Days.map(item => item.caloLunch);
-      const dinnerCalories = last3Days.map(item => item.caloDinner);
-      const snackCalories = last3Days.map(item => item.caloSnack);
-
-      caloPerDayData.value = {
-        labels: dayLabels,
-        datasets: [
-          { label: 'Sáng', backgroundColor: '#34d399', data: breakfastCalories },
-          { label: 'Trưa', backgroundColor: '#60a5fa', data: lunchCalories },
-          { label: 'Tối', backgroundColor: '#fbbf24', data: dinnerCalories },
-          { label: 'Bữa phụ', backgroundColor: '#f87171', data: snackCalories },
-        ],
-      };
-
-      const last7Days = sortedProgress.slice(-7);
-      const weekLabels = last7Days.map(item => {
-        const date = new Date(item.recordedAt);
-        return `${date.getDate()}/${date.getMonth() + 1}`;
-      });
-
-            const totalDailyCalories = last7Days.map(item =>
-        item.caloBreakfast + item.caloLunch + item.caloDinner + item.caloSnack
-      );
-        const goalCalories = last7Days.map(item => item.targetCalories);
-
-      caloPerWeekData.value = {
-        labels : weekLabels,
-        datasets: [
-          {
-            label: 'Calo đã nạp',
-            borderColor: '#34d399',
-            backgroundColor: 'rgba(52, 211, 153, 0.2)',
-            fill: true,
-            data: totalDailyCalories,
-          },
-          {
-            label: 'Calo mục tiêu',
-            borderColor: '#ef4444',
-            borderDash: [5, 5],
-            data: goalCalories,
-          },
-        ],
-      };
-
-      if (aiAssessment.value?.title) {
-        showAIMessage.value = true;
-        let index = 0;
-        const formattedText = aiAssessment.value.reply
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\n/g, '<br>');
-        animatedMessage.value = '';
-        const interval = setInterval(() => {
-          if (index < formattedText.length) {
-            animatedMessage.value += formattedText[index++];
-          } else {
-            clearInterval(interval);
-          }
-        }, 10);
-}
-  
-    } catch (error) {
-      console.error("Failed to fetch statistics:", error);
-    } finally {
-      isLoading.value = false;
-    }
-  } else {
-    isLoading.value = false;
-  }
-});
 
 const weightData = reactive({
   labels: [],
@@ -211,6 +134,84 @@ const weightData = reactive({
       data: [],
     },
   ],
+});
+
+onMounted(async () => {
+  if (is_prenium) {
+    isLoading.value = true;
+    try {
+      const response = await getUserProgress(userId);
+      const statisticsData = response.data.data.progress;
+      weightTarget.value = response.data.data.weightTarget;
+
+      aiAssessment.value = await getchatbotstatisticsApi(response.data.data);
+      console.log("AI Assessment:", aiAssessment.value);
+      showAIMessage.value = true;
+
+      const sortedProgress = [...statisticsData].sort((a, b) => new Date(a.recordedAt) - new Date(b.recordedAt));
+      const last3Days = sortedProgress.slice(-3);
+
+      // Cân nặng
+      const weightLabels = sortedProgress.map(item => {
+        const date = new Date(item.recordedAt);
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+      });
+      weightData.labels = weightLabels;
+      const weightValues = sortedProgress.map(item => item.weight);
+      weightData.datasets[0].data = weightValues;
+      weightData.datasets[1].data = new Array(weightValues.length).fill(weightTarget.value);
+
+      // Calo theo ngày
+      const dayLabels = last3Days.map(item => {
+        const date = new Date(item.recordedAt);
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+      });
+      caloPerDayData.value = {
+        labels: dayLabels,
+        datasets: [
+          { label: 'Sáng', backgroundColor: '#34d399', data: last3Days.map(i => i.caloBreakfast) },
+          { label: 'Trưa', backgroundColor: '#60a5fa', data: last3Days.map(i => i.caloLunch) },
+          { label: 'Tối', backgroundColor: '#fbbf24', data: last3Days.map(i => i.caloDinner) },
+          { label: 'Bữa phụ', backgroundColor: '#f87171', data: last3Days.map(i => i.caloSnack) },
+        ],
+      };
+
+      // Calo theo tuần
+      const last7Days = sortedProgress.slice(-7);
+      const weekLabels = last7Days.map(item => {
+        const date = new Date(item.recordedAt);
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+      });
+      const totalDailyCalories = last7Days.map(item =>
+        item.caloBreakfast + item.caloLunch + item.caloDinner + item.caloSnack
+      );
+      const goalCalories = last7Days.map(item => item.targetCalories);
+      caloPerWeekData.value = {
+        labels: weekLabels,
+        datasets: [
+          {
+            label: 'Calo đã nạp',
+            borderColor: '#34d399',
+            backgroundColor: 'rgba(52, 211, 153, 0.2)',
+            fill: true,
+            data: totalDailyCalories,
+          },
+          {
+            label: 'Calo mục tiêu',
+            borderColor: '#ef4444',
+            borderDash: [5, 5],
+            data: goalCalories,
+          },
+        ],
+      };
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu:", error);
+    } finally {
+      isLoading.value = false;
+    }
+  } else {
+    isLoading.value = false;
+  }
 });
 </script>
 
@@ -356,5 +357,26 @@ const weightData = reactive({
   font-size: 1rem;
   color: #1f2937;
 }
+
+.section {
+  margin-bottom: 1rem;
+}
+
+.section h4 {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: #f59e0b;
+}
+
+.section ul {
+  list-style-type: disc;
+  padding-left: 1.2rem;
+  margin: 0;
+}
+
+.section ul li {
+  margin-bottom: 0.25rem;
+}
+
 
 </style>
