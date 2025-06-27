@@ -2,7 +2,7 @@
   <Teleport to="body">
     <div>
       <!-- Nút nổi -->
-      <div v-if="userId" class="floating-btn" @click="show = true">📝</div>
+      <div v-if="isLoggedIn" class="floating-btn" @click="show = true">📝</div>
 
       <!-- Popup -->
       <div v-if="show" class="overlay" @click.self="close">
@@ -113,19 +113,8 @@ const form = reactive({
 const close = () => {
   show.value = false
 }
-const isLoggedIn = () => {
-  const authData = localStorage.getItem('user');
 
-  if (!authData) return false;
-
-  try {
-    const parsed = JSON.parse(authData);
-    return parsed.isLoggedIn === true;
-  } catch (error) {
-    console.error('Lỗi phân tích JSON:', error);
-    return false;
-  }
-}
+const isLoggedIn = userStore.isLoggedIn;
 
 const submitForm = async () => {
   const today = new Date().toISOString().slice(0, 10);
